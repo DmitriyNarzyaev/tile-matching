@@ -16,6 +16,7 @@ export class Main extends Container {
 		Global.PIXI_APP = new Application({
 			backgroundColor: 0x000000,
 			view: document.getElementById(canvasId) as HTMLCanvasElement,
+			antialias:true,
 			// needed to avoid troubles with invisible fonts on some Android devices
 			resolution: ((devicePixelRatio || 1) < 2) ? 1 : 2,
 		});
