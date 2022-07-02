@@ -25,7 +25,7 @@ export default class MainContainer extends Container {
 
 	private _gems:any[] = []
 	private _kolonka:number = 9;
-	private _stroka:number = 8;
+	private _stroka:number = 9;
 
 
 	constructor() {
@@ -156,10 +156,11 @@ export default class MainContainer extends Container {
 			let array:number[] = [];
 			this._gems.push(array);
 			for(let j = 0; j < this._stroka; j++) {
+				array.push(0);
 				do{
 					let randomizer = Math.floor(Math.random()*4);
-					array.push(randomizer);
-				} while(this.isStreak(i, j));
+					array[array.length-1] = randomizer;
+				} while (this.isStreak(i, j));
 			}
 		}
 		console.log(this._gems);
@@ -168,9 +169,6 @@ export default class MainContainer extends Container {
 	private isStreak(row:number, col:number) {
 		return this.isVerticalStreak(row, col) || this.isHorizontalStreak(row, col);
 	}
-
-	
-
 
 	// Проверка на группу сбора по колонкам
 	private isVerticalStreak(row:number, col:number) {
@@ -185,7 +183,7 @@ export default class MainContainer extends Container {
 
 		tmp = row;
 
-		while(tmp < this._kolonka - 1 && this._gems[tmp + 1][col] == gemValue){
+		while((tmp < this._kolonka - 1) && (this._gems[tmp + 1] != undefined && this._gems[tmp + 1][col] == gemValue)){
 			streak++;
 			tmp++;
 		}
@@ -193,7 +191,7 @@ export default class MainContainer extends Container {
 		return streak > 1;
 	}
 
-	// Проверка на группу сбора по строкам
+	//Проверка на группу сбора по строкам
 	private isHorizontalStreak(row:number, col:number) {
 		let gemValue = this._gems[row][col];
 		let streak = 0;
