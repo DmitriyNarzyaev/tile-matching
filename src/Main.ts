@@ -13,7 +13,7 @@ export class Main extends Container {
 	}
 
 	private initPixiApp(canvasId:string):void {
-		Global.PIXI_APP = new Application({
+		Global.PIXI_APP = new PIXI.Application({
 			backgroundColor: 0x000000,
 			view: document.getElementById(canvasId) as HTMLCanvasElement,
 			antialias:true,

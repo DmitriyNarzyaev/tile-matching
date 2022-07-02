@@ -6,6 +6,7 @@ import BodyPanel from "./BodyPanel";
 import FooterPanel from "./footerPanel";
 import StartTitlePanel from "./StartTitlePanel";
 import Puzzle from "./Puzzle";
+import Global from "./Global";
 
 export default class MainContainer extends Container {
 	public static WIDTH:number = 400;
@@ -20,6 +21,12 @@ export default class MainContainer extends Container {
 		"clover", "cup", "diamond", "heart"
 	];
 	private _puzzles:Puzzle[] = [];
+	private _scaleIterator:number = 0;
+
+	private _gems:any[] = []
+	private _kolonka:number = 9;
+	private _stroka:number = 8;
+
 
 	constructor() {
 		super();
@@ -69,15 +76,26 @@ export default class MainContainer extends Container {
 
 	private removeAll():void {
 		this.removeChild(this._startTitleContainer);
-		//Global.PIXI_APP.ticker.remove(this.ticker, this);
+		Global.PIXI_APP.ticker.remove(this.ticker, this);
 	}
 	
 	private startGame():void {
 		this.initHeaderPaner();
 		this.initBodyPaner();
 		this.initFooterPaner();
-		this.initPuzzles();
-		//Global.PIXI_APP.ticker.add(this.ticker, this);
+
+		
+		//this.initPuzzles();
+
+
+
+		this.createGrid();
+
+
+
+
+		Global.PIXI_APP.ticker.add(this.ticker, this);
+		this.testF();
 	}
 
 	private initHeaderPaner():void {
@@ -105,18 +123,7 @@ export default class MainContainer extends Container {
 
 		for (let puzzleIterator:number = 0; puzzleIterator<numberOfPussles; puzzleIterator++) {
 			let puzzleRandomizer = Math.floor(Math.random()*4);
-			// let puzzle:PIXI.Sprite = PIXI.Sprite.from(this._namePuzzles[puzzleRandomizer]);
-			// puzzle.width = 50;
-			// puzzle.height = 50;
-			// puzzle.x = puzzleX;
-			// puzzle.y = puzzleY;
-			// puzzle.anchor.set(.5, .5);
-			// puzzle.interactive = true;
-			// puzzle.buttonMode = true;
-			// this._bodyPanel.addChild(puzzle);
-			// this._puzzles.push(puzzle);
-			// puzzleX += puzzle.width;
-			let puzzle:Puzzle = new Puzzle(this._namePuzzles[puzzleRandomizer]);
+			let puzzle:Puzzle = new Puzzle(this._namePuzzles[puzzleRandomizer], 0, 0);
 			puzzle.x = puzzleX;
 			puzzle.y = puzzleY;
 			puzzle.interactive = true;
@@ -124,7 +131,6 @@ export default class MainContainer extends Container {
 			this._bodyPanel.addChild(puzzle);
 			this._puzzles.push(puzzle);
 			puzzleX += puzzle.width;
-
 
 			if ((puzzleIterator + 1) % puzzlesOnLine == 0) {
 				puzzleX = 25;
@@ -142,21 +148,120 @@ export default class MainContainer extends Container {
 		}
 	}
 
+	private createGrid():void {
+		// Создание пустой сетки
+
+
+		for(let i = 0; i < this._kolonka; i++) {
+			let array:number[] = [];
+			this._gems.push(array);
+			for(let j = 0; j < this._stroka; j++) {
+				do{
+					let randomizer = Math.floor(Math.random()*4);
+					array.push(randomizer);
+				} while(this.isStreak(i, j));
+			}
+		}
+		console.log(this._gems);
+	}
+
+	private isStreak(row:number, col:number) {
+		return this.isVerticalStreak(row, col) || this.isHorizontalStreak(row, col);
+	}
+
+	
+
+
+	// Проверка на группу сбора по колонкам
+	private isVerticalStreak(row:number, col:number) {
+		let gemValue = this._gems[row][col];
+		let streak = 0;
+		let tmp = row;
+
+		while(tmp > 0 && this._gems[tmp - 1][col] == gemValue){
+			streak++;
+			tmp--;
+		}
+
+		tmp = row;
+
+		while(tmp < this._kolonka - 1 && this._gems[tmp + 1][col] == gemValue){
+			streak++;
+			tmp++;
+		}
+
+		return streak > 1;
+	}
+
+	// Проверка на группу сбора по строкам
+	private isHorizontalStreak(row:number, col:number) {
+		let gemValue = this._gems[row][col];
+		let streak = 0;
+		let tmp = col;
+
+		while(tmp > 0 && this._gems[row][tmp - 1] == gemValue){
+			streak++;
+			tmp--;
+		}
+
+		tmp = col;
+
+		while(tmp < this._stroka && this._gems[row][tmp + 1] == gemValue){
+			streak++;
+			tmp++;
+		}
+	
+		return streak > 1;
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	private mouseOverHandler(puzzle:Puzzle):void {
 		console.log("mouse over");
-		puzzle.puzzleSprite.tint = (0x888888);
+		puzzle.puzzleSprite.tint = (0xaaaaaa);
+		puzzle.mouseHovering = true;
 	}
 
 	private mouseOutHandler(puzzle:Puzzle):void {
 		console.log("mouse out");
 		puzzle.puzzleSprite.tint = (0xffffff);
+		puzzle.mouseHovering = false;
+		puzzle.puzzleSprite.scale.x = 1;
+		puzzle.puzzleSprite.scale.y = 1;
+		this._scaleIterator = 0;
 	}
 
 	private pointerTapHandler():void {
 		console.log("pointer tap");
 	}
 
-	// private ticker():void {
+	private ticker():void {
+		this._puzzles.forEach((puzzle) => {
+			this._scaleIterator += 1;
+			if (puzzle.mouseHovering == true) {
+				const scale = 1 + Math.cos(this._scaleIterator/800)/30;
+				puzzle.puzzleSprite.scale.x = scale;
+				puzzle.puzzleSprite.scale.y = scale;
+			}
+		});
+	}
 
-	// }
+	private testF():void {
+	}
 }
