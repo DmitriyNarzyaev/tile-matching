@@ -1,5 +1,5 @@
 import Container = PIXI.Container;
-import { Loader } from "pixi.js";
+import { InteractionEvent, Loader } from "pixi.js";
 import Button from "./Button";
 import HeaderPanel from "./HeaderPanel";
 import BodyPanel from "./BodyPanel";
@@ -23,8 +23,8 @@ export default class MainContainer extends Container {
 	private _puzzles:Puzzle[] = [];
 	private _scaleIterator:number = 0;
 	private _gems:number[][] = []
-	private _kolonka:number = 10;
-	private _stroka:number = 8;
+	private _columns:number = 8;
+	private _lines:number = 10;
 	private _puzzleContainer:PIXI.Container;
 
 	constructor() {
@@ -79,6 +79,7 @@ export default class MainContainer extends Container {
 		this.initBodyPaner();
 		this.initFooterPaner();
 		this.createGrid();
+		this.initPuzzles();
 		Global.PIXI_APP.ticker.add(this.ticker, this);
 	}
 
@@ -101,10 +102,10 @@ export default class MainContainer extends Container {
 
 	private createGrid():void {
 		// Создание пустой сетки
-		for(let i = 0; i < this._kolonka; i++) {
+		for(let i = 0; i < this._columns; i++) {
 			let array:number[] = [];
 			this._gems.push(array);
-			for(let j = 0; j < this._stroka; j++) {
+			for(let j = 0; j < this._lines; j++) {
 				array.push(0);
 				do{
 					let randomizer = Math.floor(Math.random()*4);
@@ -113,21 +114,25 @@ export default class MainContainer extends Container {
 			}
 		}
 		console.log(this._gems);
+	}
 
+	private initPuzzles():void {
 		this._puzzleContainer = new PIXI.Container;
 		this.addChild(this._puzzleContainer);
 		this._puzzleContainer.x = 25;								//FIXME: magic number
 		this._puzzleContainer.y = this._headerPanel.height + 25;	//FIXME: magic number
-
-		let puzzleX:number = 0;
-		let puzzleY:number = 0;
 		let puzzleHeight = 0;
+		let iterator:number = 0;
 		for(let i = 0; i < this._gems.length; i++) {
 			this._gems[i].forEach(puzzleNameNumber => {
 				let puzzle:Puzzle = new Puzzle(this._namePuzzles[puzzleNameNumber]);
-				puzzle.x = puzzleX;
-				puzzle.y = puzzleY;
-				puzzleX += puzzle.width;
+				puzzle.lineIndex = i;
+				puzzle.columnIndex = iterator;
+				puzzle.puzzleX = 50 * puzzle.lineIndex;
+				puzzle.puzzleY = 50 * puzzle.columnIndex;
+				puzzle.x = puzzle.puzzleX;
+				puzzle.y = puzzle.puzzleY;
+				iterator++;
 				puzzle.interactive = true;
 				puzzle.buttonMode = true;
 				this._puzzles.push(puzzle);
@@ -137,10 +142,9 @@ export default class MainContainer extends Container {
 				}
 				puzzle.addListener("mouseover", () => {this.mouseOverHandler(puzzle);});
 				puzzle.addListener("mouseout", 	() => {this.mouseOutHandler(puzzle);},);
-				puzzle.addListener("pointertap", this.pointerTapHandler, this);
+				puzzle.addListener("pointertap", () => {this.pointerTapHandler(puzzle);},);
 			});
-			puzzleX = 0;
-			puzzleY += puzzleHeight;
+			iterator = 0;
 		}
 	}
 
@@ -161,7 +165,7 @@ export default class MainContainer extends Container {
 
 		tmp = row;
 
-		while((tmp < this._kolonka - 1) && (this._gems[tmp + 1] != undefined && this._gems[tmp + 1][col] == gemValue)){
+		while((tmp < this._columns - 1) && (this._gems[tmp + 1] != undefined && this._gems[tmp + 1][col] == gemValue)){
 			streak++;
 			tmp++;
 		}
@@ -182,7 +186,7 @@ export default class MainContainer extends Container {
 
 		tmp = col;
 
-		while(tmp < this._stroka && this._gems[row][tmp + 1] == gemValue){
+		while(tmp < this._lines && this._gems[row][tmp + 1] == gemValue){
 			streak++;
 			tmp++;
 		}
@@ -203,8 +207,9 @@ export default class MainContainer extends Container {
 		this._scaleIterator = 0;
 	}
 
-	private pointerTapHandler():void {
-		
+	private pointerTapHandler(puzzle:Puzzle):void {
+		console.log("колонка - " + puzzle.lineIndex);
+		console.log("строка - " + puzzle.columnIndex);
 	}
 
 	private ticker():void {
