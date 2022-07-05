@@ -22,21 +22,17 @@ export default class MainContainer extends Container {
 	];
 	private _puzzles:Puzzle[] = [];
 	private _scaleIterator:number = 0;
-
-	private _gems:any[] = []
-	private _kolonka:number = 9;
-	private _stroka:number = 9;
-
+	private _gems:number[][] = []
+	private _kolonka:number = 10;
+	private _stroka:number = 8;
+	private _puzzleContainer:PIXI.Container;
 
 	constructor() {
 		super();
-		
 		this._startTitleContainer = new PIXI.Container;
 		this.addChild(this._startTitleContainer);
-
 		this._gameContainer = new PIXI.Container;
 		this.addChild(this._gameContainer);
-
 		this.pictureLoader();
 	}
 
@@ -55,7 +51,6 @@ export default class MainContainer extends Container {
 	//заставка
 	private initTitle():void {
 		const buttonY:number = 400;
-
 		this._startTitlePanel = new StartTitlePanel;
 		this._startTitleContainer.addChild(this._startTitlePanel);
 
@@ -83,19 +78,8 @@ export default class MainContainer extends Container {
 		this.initHeaderPaner();
 		this.initBodyPaner();
 		this.initFooterPaner();
-
-		
-		//this.initPuzzles();
-
-
-
 		this.createGrid();
-
-
-
-
 		Global.PIXI_APP.ticker.add(this.ticker, this);
-		this.testF();
 	}
 
 	private initHeaderPaner():void {
@@ -115,43 +99,8 @@ export default class MainContainer extends Container {
 		this._gameContainer.addChild(this._footerPanel);
 	}
 
-	private initPuzzles() {
-		let puzzleX:number = 25;
-		let puzzleY:number = 25;
-		let numberOfPussles:number = 80;
-		let puzzlesOnLine:number = 8;
-
-		for (let puzzleIterator:number = 0; puzzleIterator<numberOfPussles; puzzleIterator++) {
-			let puzzleRandomizer = Math.floor(Math.random()*4);
-			let puzzle:Puzzle = new Puzzle(this._namePuzzles[puzzleRandomizer], 0, 0);
-			puzzle.x = puzzleX;
-			puzzle.y = puzzleY;
-			puzzle.interactive = true;
-			puzzle.buttonMode = true;
-			this._bodyPanel.addChild(puzzle);
-			this._puzzles.push(puzzle);
-			puzzleX += puzzle.width;
-
-			if ((puzzleIterator + 1) % puzzlesOnLine == 0) {
-				puzzleX = 25;
-				puzzleY += puzzle.height;
-			}
-
-			puzzle.addListener("mouseover", () => {this.mouseOverHandler(puzzle);});
-
-			puzzle.addListener("mouseout", 
-				() => {this.mouseOutHandler(puzzle);
-				},
-			);
-
-			puzzle.addListener("pointertap", this.pointerTapHandler, this);
-		}
-	}
-
 	private createGrid():void {
 		// Создание пустой сетки
-
-
 		for(let i = 0; i < this._kolonka; i++) {
 			let array:number[] = [];
 			this._gems.push(array);
@@ -164,6 +113,35 @@ export default class MainContainer extends Container {
 			}
 		}
 		console.log(this._gems);
+
+		this._puzzleContainer = new PIXI.Container;
+		this.addChild(this._puzzleContainer);
+		this._puzzleContainer.x = 25;								//FIXME: magic number
+		this._puzzleContainer.y = this._headerPanel.height + 25;	//FIXME: magic number
+
+		let puzzleX:number = 0;
+		let puzzleY:number = 0;
+		let puzzleHeight = 0;
+		for(let i = 0; i < this._gems.length; i++) {
+			this._gems[i].forEach(puzzleNameNumber => {
+				let puzzle:Puzzle = new Puzzle(this._namePuzzles[puzzleNameNumber]);
+				puzzle.x = puzzleX;
+				puzzle.y = puzzleY;
+				puzzleX += puzzle.width;
+				puzzle.interactive = true;
+				puzzle.buttonMode = true;
+				this._puzzles.push(puzzle);
+				this._puzzleContainer.addChild(puzzle);
+				if (puzzleHeight <= 1) {
+					puzzleHeight = puzzle.height;
+				}
+				puzzle.addListener("mouseover", () => {this.mouseOverHandler(puzzle);});
+				puzzle.addListener("mouseout", 	() => {this.mouseOutHandler(puzzle);},);
+				puzzle.addListener("pointertap", this.pointerTapHandler, this);
+			});
+			puzzleX = 0;
+			puzzleY += puzzleHeight;
+		}
 	}
 
 	private isStreak(row:number, col:number) {
@@ -212,32 +190,12 @@ export default class MainContainer extends Container {
 		return streak > 1;
 	}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	private mouseOverHandler(puzzle:Puzzle):void {
-		console.log("mouse over");
 		puzzle.puzzleSprite.tint = (0xaaaaaa);
 		puzzle.mouseHovering = true;
 	}
 
 	private mouseOutHandler(puzzle:Puzzle):void {
-		console.log("mouse out");
 		puzzle.puzzleSprite.tint = (0xffffff);
 		puzzle.mouseHovering = false;
 		puzzle.puzzleSprite.scale.x = 1;
@@ -246,7 +204,7 @@ export default class MainContainer extends Container {
 	}
 
 	private pointerTapHandler():void {
-		console.log("pointer tap");
+		
 	}
 
 	private ticker():void {
@@ -258,8 +216,5 @@ export default class MainContainer extends Container {
 				puzzle.puzzleSprite.scale.y = scale;
 			}
 		});
-	}
-
-	private testF():void {
 	}
 }
