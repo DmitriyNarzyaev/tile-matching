@@ -220,26 +220,50 @@ export default class MainContainer extends Container {
 			console.log("x1-"+this.firstLineIndex+ " y1-"+this.firstColumnIndex+ " x2-"+this.secondLineIndex+ " y2-"+this.secondColumnIndex);
 
 			let difference1:number = Math.abs(this.secondLineIndex - this.firstLineIndex);
-			let difference2:number = Math.abs(this.secondColumnIndex - this.firstColumnIndex);		
-			if ((difference1 <= 1 && difference2 == 0)) {
+			let difference2:number = Math.abs(this.secondColumnIndex - this.firstColumnIndex);
+
+			if ((difference1 == 1 && difference2 == 0)) {
+				let tempIndex1:number = this._gems[this.firstLineIndex][this.firstColumnIndex];
 				puzzle.puzzleSprite.tint = (0xaaaaaa);
-				//this.removeChild(this._puzzleContainer);
+				this._gems[this.firstLineIndex][this.firstColumnIndex]
+					= this._gems[this.secondLineIndex][this.secondColumnIndex];
+				this._gems[this.secondLineIndex][this.secondColumnIndex]
+					= tempIndex1;
+				this.firstLineIndex = null;
+				this.firstColumnIndex = null;
+				this.secondLineIndex = null;
+				this.secondColumnIndex = null;
+				this.removeChild(this._puzzleContainer);
+				this.initPuzzles();
 			}
-			if ((difference1 == 0 && difference2 <= 1)) {
+
+			if ((difference1 == 0 && difference2 == 1)) {
+				let tempIndex1:number = this._gems[this.firstLineIndex][this.firstColumnIndex];
 				puzzle.puzzleSprite.tint = (0xaaaaaa);
-				//this.removeChild(this._puzzleContainer);
+				this._gems[this.firstLineIndex][this.firstColumnIndex]
+					= this._gems[this.secondLineIndex][this.secondColumnIndex];
+				this._gems[this.secondLineIndex][this.secondColumnIndex]
+					= tempIndex1;
+				this.firstLineIndex = null;
+				this.firstColumnIndex = null;
+				this.secondLineIndex = null;
+				this.secondColumnIndex = null;
+				this.removeChild(this._puzzleContainer);
+				this.initPuzzles();
 			}
+
+
 		}
 	}
 
 	private ticker():void {
-		this._puzzles.forEach((puzzle) => {
-			this._scaleIterator += 1;
-			if (puzzle.mouseHovering == true) {
-				const scale = 1 + Math.cos(this._scaleIterator/800)/30;
-				puzzle.puzzleSprite.scale.x = scale;
-				puzzle.puzzleSprite.scale.y = scale;
-			}
-		});
+		// this._puzzles.forEach((puzzle) => {
+		// 	this._scaleIterator += 1;
+		// 	if (puzzle.mouseHovering == true) {
+		// 		const scale = 1 + Math.cos(this._scaleIterator/800)/30;
+		// 		puzzle.puzzleSprite.scale.x = scale;
+		// 		puzzle.puzzleSprite.scale.y = scale;
+		// 	}
+		// });
 	}
 }
