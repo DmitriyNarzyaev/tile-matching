@@ -23,8 +23,8 @@ export default class MainContainer extends Container {
 	private _puzzles:Puzzle[] = [];
 	private _scaleIterator:number = 0;
 	private _gems:number[][] = []
-	private _columns:number = 8;
-	private _lines:number = 10;
+	private _columns:number = 10;
+	private _lines:number = 8;
 	private _puzzleContainer:PIXI.Container;
 
 	constructor() {
@@ -64,7 +64,6 @@ export default class MainContainer extends Container {
 	}
 
 	private buttonClickFunctions():void {
-		console.log("click");
 		this.removeAll();
 		this.startGame();
 	}
@@ -126,10 +125,10 @@ export default class MainContainer extends Container {
 		for(let i = 0; i < this._gems.length; i++) {
 			this._gems[i].forEach(puzzleNameNumber => {
 				let puzzle:Puzzle = new Puzzle(this._namePuzzles[puzzleNameNumber]);
-				puzzle.lineIndex = i;
 				puzzle.columnIndex = iterator;
-				puzzle.puzzleX = 50 * puzzle.lineIndex;
-				puzzle.puzzleY = 50 * puzzle.columnIndex;
+				puzzle.lineIndex = i;
+				puzzle.puzzleX = 50 * puzzle.columnIndex;
+				puzzle.puzzleY = 50 * puzzle.lineIndex;
 				puzzle.x = puzzle.puzzleX;
 				puzzle.y = puzzle.puzzleY;
 				iterator++;
@@ -195,21 +194,42 @@ export default class MainContainer extends Container {
 	}
 
 	private mouseOverHandler(puzzle:Puzzle):void {
-		puzzle.puzzleSprite.tint = (0xaaaaaa);
 		puzzle.mouseHovering = true;
 	}
 
 	private mouseOutHandler(puzzle:Puzzle):void {
-		puzzle.puzzleSprite.tint = (0xffffff);
 		puzzle.mouseHovering = false;
 		puzzle.puzzleSprite.scale.x = 1;
 		puzzle.puzzleSprite.scale.y = 1;
 		this._scaleIterator = 0;
 	}
 
+	private firstLineIndex:number = null;
+	private firstColumnIndex:number = null;
+	private secondLineIndex:number = null;
+	private secondColumnIndex:number = null;
 	private pointerTapHandler(puzzle:Puzzle):void {
-		console.log("колонка - " + puzzle.lineIndex);
-		console.log("строка - " + puzzle.columnIndex);
+		if (this.firstLineIndex == null && this.firstColumnIndex == null) {
+			this.firstLineIndex = puzzle.lineIndex;
+			this.firstColumnIndex = puzzle.columnIndex;
+			puzzle.puzzleSprite.tint = (0xaaaaaa);
+			console.log("x1-"+this.firstLineIndex+ " y1-"+this.firstColumnIndex+ " x2-"+this.secondLineIndex+ " y2-"+this.secondColumnIndex);
+		} else if (this.firstLineIndex != null && this.firstColumnIndex != null) {
+			this.secondLineIndex = puzzle.lineIndex;
+			this.secondColumnIndex = puzzle.columnIndex;
+			console.log("x1-"+this.firstLineIndex+ " y1-"+this.firstColumnIndex+ " x2-"+this.secondLineIndex+ " y2-"+this.secondColumnIndex);
+
+			let difference1:number = Math.abs(this.secondLineIndex - this.firstLineIndex);
+			let difference2:number = Math.abs(this.secondColumnIndex - this.firstColumnIndex);		
+			if ((difference1 <= 1 && difference2 == 0)) {
+				puzzle.puzzleSprite.tint = (0xaaaaaa);
+				//this.removeChild(this._puzzleContainer);
+			}
+			if ((difference1 == 0 && difference2 <= 1)) {
+				puzzle.puzzleSprite.tint = (0xaaaaaa);
+				//this.removeChild(this._puzzleContainer);
+			}
+		}
 	}
 
 	private ticker():void {

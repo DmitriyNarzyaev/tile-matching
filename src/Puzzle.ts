@@ -3,8 +3,8 @@ import Container = PIXI.Container;
 export default class Puzzle extends Container {
 	public puzzleSprite:PIXI.Sprite;
 	public mouseHovering:boolean;
-	public columnIndex:number;
 	public lineIndex:number;
+	public columnIndex:number;
 	public puzzleX:number = 0;
 	public puzzleY:number = 0;
 
