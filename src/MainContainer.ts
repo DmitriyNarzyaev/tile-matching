@@ -21,10 +21,10 @@ export default class MainContainer extends Container {
 		"clover", "cup", "diamond", "heart"
 	];
 	private _puzzles:Puzzle[] = [];
-	private _scaleIterator:number = 0;
-	private _gems:number[][] = []
-	private _columns:number = 10;
-	private _lines:number = 8;
+	//private _scaleIterator:number = 0;
+	private _pussleNumbers:number[][] = [];
+	private _linesNumber:number = 10;
+	private _columnsNumber:number = 8;
 	private _puzzleContainer:PIXI.Container;
 
 	constructor() {
@@ -70,7 +70,8 @@ export default class MainContainer extends Container {
 
 	private removeAll():void {
 		this.removeChild(this._startTitleContainer);
-		Global.PIXI_APP.ticker.remove(this.ticker, this);
+		this.removeChild(this._puzzleContainer);
+		this._puzzles = [];									//!!!!!!!!!!!FIXME не обновляется массив
 	}
 	
 	private startGame():void {
@@ -79,7 +80,7 @@ export default class MainContainer extends Container {
 		this.initFooterPaner();
 		this.createGrid();
 		this.initPuzzles();
-		Global.PIXI_APP.ticker.add(this.ticker, this);
+		//Global.PIXI_APP.ticker.add(this.ticker, this);
 	}
 
 	private initHeaderPaner():void {
@@ -101,10 +102,10 @@ export default class MainContainer extends Container {
 
 	private createGrid():void {
 		// Создание пустой сетки
-		for(let i = 0; i < this._columns; i++) {
+		for(let i = 0; i < this._linesNumber; i++) {
 			let array:number[] = [];
-			this._gems.push(array);
-			for(let j = 0; j < this._lines; j++) {
+			this._pussleNumbers.push(array);
+			for(let j = 0; j < this._columnsNumber; j++) {
 				array.push(0);
 				do{
 					let randomizer = Math.floor(Math.random()*4);
@@ -112,7 +113,6 @@ export default class MainContainer extends Container {
 				} while (this.isStreak(i, j));
 			}
 		}
-		console.log(this._gems);
 	}
 
 	private initPuzzles():void {
@@ -122,8 +122,8 @@ export default class MainContainer extends Container {
 		this._puzzleContainer.y = this._headerPanel.height + 25;	//FIXME: magic number
 		let puzzleHeight = 0;
 		let iterator:number = 0;
-		for(let i = 0; i < this._gems.length; i++) {
-			this._gems[i].forEach(puzzleNameNumber => {
+		for(let i = 0; i < this._pussleNumbers.length; i++) {
+			this._pussleNumbers[i].forEach(puzzleNameNumber => {
 				let puzzle:Puzzle = new Puzzle(this._namePuzzles[puzzleNameNumber]);
 				puzzle.columnIndex = iterator;
 				puzzle.lineIndex = i;
@@ -139,12 +139,14 @@ export default class MainContainer extends Container {
 				if (puzzleHeight <= 1) {
 					puzzleHeight = puzzle.height;
 				}
-				puzzle.addListener("mouseover", () => {this.mouseOverHandler(puzzle);});
-				puzzle.addListener("mouseout", 	() => {this.mouseOutHandler(puzzle);},);
+				// puzzle.addListener("mouseover", () => {this.mouseOverHandler(puzzle);});
+				// puzzle.addListener("mouseout", 	() => {this.mouseOutHandler(puzzle);},);
 				puzzle.addListener("pointertap", () => {this.pointerTapHandler(puzzle);},);
 			});
 			iterator = 0;
 		}
+
+		console.log(this._pussleNumbers);
 	}
 
 	private isStreak(row:number, col:number) {
@@ -153,18 +155,18 @@ export default class MainContainer extends Container {
 
 	// Проверка на группу сбора по колонкам
 	private isVerticalStreak(row:number, col:number) {
-		let gemValue = this._gems[row][col];
+		let gemValue = this._pussleNumbers[row][col];
 		let streak = 0;
 		let tmp = row;
 
-		while(tmp > 0 && this._gems[tmp - 1][col] == gemValue){
+		while(tmp > 0 && this._pussleNumbers[tmp - 1][col] == gemValue){
 			streak++;
 			tmp--;
 		}
 
 		tmp = row;
 
-		while((tmp < this._columns - 1) && (this._gems[tmp + 1] != undefined && this._gems[tmp + 1][col] == gemValue)){
+		while((tmp < this._linesNumber - 1) && (this._pussleNumbers[tmp + 1] != undefined && this._pussleNumbers[tmp + 1][col] == gemValue)){
 			streak++;
 			tmp++;
 		}
@@ -174,18 +176,18 @@ export default class MainContainer extends Container {
 
 	//Проверка на группу сбора по строкам
 	private isHorizontalStreak(row:number, col:number) {
-		let gemValue = this._gems[row][col];
+		let gemValue = this._pussleNumbers[row][col];
 		let streak = 0;
 		let tmp = col;
 
-		while(tmp > 0 && this._gems[row][tmp - 1] == gemValue){
+		while(tmp > 0 && this._pussleNumbers[row][tmp - 1] == gemValue){
 			streak++;
 			tmp--;
 		}
 
 		tmp = col;
 
-		while(tmp < this._lines && this._gems[row][tmp + 1] == gemValue){
+		while(tmp < this._columnsNumber && this._pussleNumbers[row][tmp + 1] == gemValue){
 			streak++;
 			tmp++;
 		}
@@ -193,16 +195,16 @@ export default class MainContainer extends Container {
 		return streak > 1;
 	}
 
-	private mouseOverHandler(puzzle:Puzzle):void {
-		puzzle.mouseHovering = true;
-	}
+	// private mouseOverHandler(puzzle:Puzzle):void {
+	// 	puzzle.mouseHovering = true;
+	// }
 
-	private mouseOutHandler(puzzle:Puzzle):void {
-		puzzle.mouseHovering = false;
-		puzzle.puzzleSprite.scale.x = 1;
-		puzzle.puzzleSprite.scale.y = 1;
-		this._scaleIterator = 0;
-	}
+	// private mouseOutHandler(puzzle:Puzzle):void {
+	// 	puzzle.mouseHovering = false;
+	// 	puzzle.puzzleSprite.scale.x = 1;
+	// 	puzzle.puzzleSprite.scale.y = 1;
+	// 	this._scaleIterator = 0;
+	// }
 
 	private firstLineIndex:number = null;
 	private firstColumnIndex:number = null;
@@ -213,57 +215,77 @@ export default class MainContainer extends Container {
 			this.firstLineIndex = puzzle.lineIndex;
 			this.firstColumnIndex = puzzle.columnIndex;
 			puzzle.puzzleSprite.tint = (0xaaaaaa);
-			console.log("x1-"+this.firstLineIndex+ " y1-"+this.firstColumnIndex+ " x2-"+this.secondLineIndex+ " y2-"+this.secondColumnIndex);
 		} else if (this.firstLineIndex != null && this.firstColumnIndex != null) {
 			this.secondLineIndex = puzzle.lineIndex;
 			this.secondColumnIndex = puzzle.columnIndex;
-			console.log("x1-"+this.firstLineIndex+ " y1-"+this.firstColumnIndex+ " x2-"+this.secondLineIndex+ " y2-"+this.secondColumnIndex);
-
 			let difference1:number = Math.abs(this.secondLineIndex - this.firstLineIndex);
 			let difference2:number = Math.abs(this.secondColumnIndex - this.firstColumnIndex);
 
 			if ((difference1 == 1 && difference2 == 0)) {
-				let tempIndex1:number = this._gems[this.firstLineIndex][this.firstColumnIndex];
+				let tempIndex1:number = this._pussleNumbers[this.firstLineIndex][this.firstColumnIndex];
 				puzzle.puzzleSprite.tint = (0xaaaaaa);
-				this._gems[this.firstLineIndex][this.firstColumnIndex]
-					= this._gems[this.secondLineIndex][this.secondColumnIndex];
-				this._gems[this.secondLineIndex][this.secondColumnIndex]
+				this._pussleNumbers[this.firstLineIndex][this.firstColumnIndex]
+					= this._pussleNumbers[this.secondLineIndex][this.secondColumnIndex];
+				this._pussleNumbers[this.secondLineIndex][this.secondColumnIndex]
 					= tempIndex1;
 				this.firstLineIndex = null;
 				this.firstColumnIndex = null;
 				this.secondLineIndex = null;
 				this.secondColumnIndex = null;
-				this.removeChild(this._puzzleContainer);
+				this.removeAll();
 				this.initPuzzles();
 			}
 
 			if ((difference1 == 0 && difference2 == 1)) {
-				let tempIndex1:number = this._gems[this.firstLineIndex][this.firstColumnIndex];
+				let tempIndex1:number = this._pussleNumbers[this.firstLineIndex][this.firstColumnIndex];
 				puzzle.puzzleSprite.tint = (0xaaaaaa);
-				this._gems[this.firstLineIndex][this.firstColumnIndex]
-					= this._gems[this.secondLineIndex][this.secondColumnIndex];
-				this._gems[this.secondLineIndex][this.secondColumnIndex]
+				this._pussleNumbers[this.firstLineIndex][this.firstColumnIndex]
+					= this._pussleNumbers[this.secondLineIndex][this.secondColumnIndex];
+				this._pussleNumbers[this.secondLineIndex][this.secondColumnIndex]
 					= tempIndex1;
 				this.firstLineIndex = null;
 				this.firstColumnIndex = null;
 				this.secondLineIndex = null;
 				this.secondColumnIndex = null;
-				this.removeChild(this._puzzleContainer);
+				this.removeAll();
 				this.initPuzzles();
 			}
-
-
 		}
+
+		this.removeGems();
+		console.log("----------------");
 	}
 
-	private ticker():void {
-		// this._puzzles.forEach((puzzle) => {
-		// 	this._scaleIterator += 1;
-		// 	if (puzzle.mouseHovering == true) {
-		// 		const scale = 1 + Math.cos(this._scaleIterator/800)/30;
-		// 		puzzle.puzzleSprite.scale.x = scale;
-		// 		puzzle.puzzleSprite.scale.y = scale;
-		// 	}
-		// });
+	//удаление пазлов
+	private removeGems():void {
+		this._pussleNumbers[0].forEach((puzzle, index) => {
+			//console.log("puzzle = " + puzzle + " * index = " + index);
+
+			console.log(this._pussleNumbers[0][0]);
+			console.log(this._puzzles[index].pName);
+			if (puzzle == this._pussleNumbers[0][index +1] && puzzle == this._pussleNumbers[0][index + 2]) {
+				this._puzzles[index].toDelete = true;
+				this._puzzles[index+1].toDelete = true;
+				this._puzzles[index+2].toDelete = true;
+			}
+		});
+
+		this._puzzles.forEach(puzzle => {
+			if (puzzle.toDelete == true) {
+				this._puzzleContainer.removeChild(puzzle);
+
+			}
+		});
 	}
+
+	// private ticker():void {
+	// 	this._puzzles.forEach((puzzle) => {
+	// 		this._scaleIterator += 1;
+	// 		if (puzzle.mouseHovering == true) {
+	// 			const scale = 1 + Math.cos(this._scaleIterator/800)/30;
+	// 			puzzle.puzzleSprite.scale.x = scale;
+	// 			puzzle.puzzleSprite.scale.y = scale;
+	// 		}
+	// 	});
+	// }
 }
