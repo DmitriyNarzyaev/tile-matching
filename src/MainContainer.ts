@@ -7,6 +7,7 @@ import FooterPanel from "./footerPanel";
 import StartTitlePanel from "./StartTitlePanel";
 import Puzzle from "./Puzzle";
 import Global from "./Global";
+import { join } from "path";
 
 export default class MainContainer extends Container {
 	public static WIDTH:number = 400;
@@ -22,7 +23,7 @@ export default class MainContainer extends Container {
 	];
 	private _puzzles:Puzzle[] = [];
 	//private _scaleIterator:number = 0;
-	private _pussleNumbers:number[][] = [];
+	private _puzzleNumbers:number[][] = [];
 	private _linesNumber:number = 10;
 	private _columnsNumber:number = 8;
 	private _puzzleContainer:PIXI.Container;
@@ -104,7 +105,7 @@ export default class MainContainer extends Container {
 		// Создание пустой сетки
 		for(let i = 0; i < this._linesNumber; i++) {
 			let array:number[] = [];
-			this._pussleNumbers.push(array);
+			this._puzzleNumbers.push(array);
 			for(let j = 0; j < this._columnsNumber; j++) {
 				array.push(0);
 				do{
@@ -122,8 +123,8 @@ export default class MainContainer extends Container {
 		this._puzzleContainer.y = this._headerPanel.height + 25;	//FIXME: magic number
 		let puzzleHeight = 0;
 		let iterator:number = 0;
-		for(let i = 0; i < this._pussleNumbers.length; i++) {
-			this._pussleNumbers[i].forEach(puzzleNameNumber => {
+		for(let i = 0; i < this._puzzleNumbers.length; i++) {
+			this._puzzleNumbers[i].forEach(puzzleNameNumber => {
 				let puzzle:Puzzle = new Puzzle(this._namePuzzles[puzzleNameNumber]);
 				puzzle.columnIndex = iterator;
 				puzzle.lineIndex = i;
@@ -145,8 +146,6 @@ export default class MainContainer extends Container {
 			});
 			iterator = 0;
 		}
-
-		console.log(this._pussleNumbers);
 	}
 
 	private isStreak(row:number, col:number) {
@@ -155,18 +154,18 @@ export default class MainContainer extends Container {
 
 	// Проверка на группу сбора по колонкам
 	private isVerticalStreak(row:number, col:number) {
-		let gemValue = this._pussleNumbers[row][col];
+		let gemValue = this._puzzleNumbers[row][col];
 		let streak = 0;
 		let tmp = row;
 
-		while(tmp > 0 && this._pussleNumbers[tmp - 1][col] == gemValue){
+		while(tmp > 0 && this._puzzleNumbers[tmp - 1][col] == gemValue){
 			streak++;
 			tmp--;
 		}
 
 		tmp = row;
 
-		while((tmp < this._linesNumber - 1) && (this._pussleNumbers[tmp + 1] != undefined && this._pussleNumbers[tmp + 1][col] == gemValue)){
+		while((tmp < this._linesNumber - 1) && (this._puzzleNumbers[tmp + 1] != undefined && this._puzzleNumbers[tmp + 1][col] == gemValue)){
 			streak++;
 			tmp++;
 		}
@@ -176,18 +175,18 @@ export default class MainContainer extends Container {
 
 	//Проверка на группу сбора по строкам
 	private isHorizontalStreak(row:number, col:number) {
-		let gemValue = this._pussleNumbers[row][col];
+		let gemValue = this._puzzleNumbers[row][col];
 		let streak = 0;
 		let tmp = col;
 
-		while(tmp > 0 && this._pussleNumbers[row][tmp - 1] == gemValue){
+		while(tmp > 0 && this._puzzleNumbers[row][tmp - 1] == gemValue){
 			streak++;
 			tmp--;
 		}
 
 		tmp = col;
 
-		while(tmp < this._columnsNumber && this._pussleNumbers[row][tmp + 1] == gemValue){
+		while(tmp < this._columnsNumber && this._puzzleNumbers[row][tmp + 1] == gemValue){
 			streak++;
 			tmp++;
 		}
@@ -222,11 +221,11 @@ export default class MainContainer extends Container {
 			let difference2:number = Math.abs(this.secondColumnIndex - this.firstColumnIndex);
 
 			if ((difference1 == 1 && difference2 == 0)) {
-				let tempIndex1:number = this._pussleNumbers[this.firstLineIndex][this.firstColumnIndex];
+				let tempIndex1:number = this._puzzleNumbers[this.firstLineIndex][this.firstColumnIndex];
 				puzzle.puzzleSprite.tint = (0xaaaaaa);
-				this._pussleNumbers[this.firstLineIndex][this.firstColumnIndex]
-					= this._pussleNumbers[this.secondLineIndex][this.secondColumnIndex];
-				this._pussleNumbers[this.secondLineIndex][this.secondColumnIndex]
+				this._puzzleNumbers[this.firstLineIndex][this.firstColumnIndex]
+					= this._puzzleNumbers[this.secondLineIndex][this.secondColumnIndex];
+				this._puzzleNumbers[this.secondLineIndex][this.secondColumnIndex]
 					= tempIndex1;
 				this.firstLineIndex = null;
 				this.firstColumnIndex = null;
@@ -237,11 +236,11 @@ export default class MainContainer extends Container {
 			}
 
 			if ((difference1 == 0 && difference2 == 1)) {
-				let tempIndex1:number = this._pussleNumbers[this.firstLineIndex][this.firstColumnIndex];
+				let tempIndex1:number = this._puzzleNumbers[this.firstLineIndex][this.firstColumnIndex];
 				puzzle.puzzleSprite.tint = (0xaaaaaa);
-				this._pussleNumbers[this.firstLineIndex][this.firstColumnIndex]
-					= this._pussleNumbers[this.secondLineIndex][this.secondColumnIndex];
-				this._pussleNumbers[this.secondLineIndex][this.secondColumnIndex]
+				this._puzzleNumbers[this.firstLineIndex][this.firstColumnIndex]
+					= this._puzzleNumbers[this.secondLineIndex][this.secondColumnIndex];
+				this._puzzleNumbers[this.secondLineIndex][this.secondColumnIndex]
 					= tempIndex1;
 				this.firstLineIndex = null;
 				this.firstColumnIndex = null;
@@ -253,27 +252,35 @@ export default class MainContainer extends Container {
 		}
 
 		this.removeGems();
-		console.log("----------------");
 	}
 
 	//удаление пазлов
 	private removeGems():void {
-		this._pussleNumbers[0].forEach((puzzle, index) => {
-			//console.log("puzzle = " + puzzle + " * index = " + index);
+		//удаление в строках
+		for (let i:number = 0; i<this._linesNumber; i++) {
+			this._puzzleNumbers[i].forEach((puzzle, index) => {
+				if (puzzle == this._puzzleNumbers[i][index + 1] && puzzle == this._puzzleNumbers[i][index + 2]) {
+					this._puzzles[index + (i * this._columnsNumber)].toDelete = true;
+					this._puzzles[(index + 1) + (i*this._columnsNumber)].toDelete = true;
+					this._puzzles[(index + 2) + (i*this._columnsNumber)].toDelete = true;
+				}
+			});
+		}
 
-			console.log(this._pussleNumbers[0][0]);
-			console.log(this._puzzles[index].pName);
-			if (puzzle == this._pussleNumbers[0][index +1] && puzzle == this._pussleNumbers[0][index + 2]) {
-				this._puzzles[index].toDelete = true;
-				this._puzzles[index+1].toDelete = true;
-				this._puzzles[index+2].toDelete = true;
-			}
-		});
-
+		//удаление в колонках
+		for (let i:number = 0; i<this._columnsNumber; i++) {
+			this._puzzleNumbers[i].forEach((puzzle, index) => {
+				if (puzzle == this._puzzleNumbers[i+1][index] && puzzle == this._puzzleNumbers[i+2][index]) {
+					this._puzzles[index + this._columnsNumber*i].toDelete = true;
+					this._puzzles[index + this._columnsNumber*(i+1)].toDelete = true;
+					this._puzzles[index + this._columnsNumber*(i+2)].toDelete = true;
+				}
+			});
+		}
+		
 		this._puzzles.forEach(puzzle => {
 			if (puzzle.toDelete == true) {
 				this._puzzleContainer.removeChild(puzzle);
-
 			}
 		});
 	}
