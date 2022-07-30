@@ -5,9 +5,6 @@ export default class Puzzle extends Container {
 	public mouseHovering:boolean;
 	public lineIndex:number;
 	public columnIndex:number;
-	public puzzleX:number = 0;
-	public puzzleY:number = 0;
-
 
 	public toDelete:boolean = false;
 	public pName:string = "";

@@ -128,10 +128,8 @@ export default class MainContainer extends Container {
 				let puzzle:Puzzle = new Puzzle(this._namePuzzles[puzzleNameNumber]);
 				puzzle.columnIndex = iterator;
 				puzzle.lineIndex = i;
-				puzzle.puzzleX = 50 * puzzle.columnIndex;
-				puzzle.puzzleY = 50 * puzzle.lineIndex;
-				puzzle.x = puzzle.puzzleX;
-				puzzle.y = puzzle.puzzleY;
+				puzzle.x = 50 * puzzle.columnIndex;
+				puzzle.y = 50 * puzzle.lineIndex;
 				iterator++;
 				puzzle.interactive = true;
 				puzzle.buttonMode = true;
@@ -140,8 +138,6 @@ export default class MainContainer extends Container {
 				if (puzzleHeight <= 1) {
 					puzzleHeight = puzzle.height;
 				}
-				// puzzle.addListener("mouseover", () => {this.mouseOverHandler(puzzle);});
-				// puzzle.addListener("mouseout", 	() => {this.mouseOutHandler(puzzle);},);
 				puzzle.addListener("pointertap", () => {this.pointerTapHandler(puzzle);},);
 			});
 			iterator = 0;
@@ -250,7 +246,6 @@ export default class MainContainer extends Container {
 				this.initPuzzles();
 			}
 		}
-
 		this.removeGems();
 	}
 
@@ -278,9 +273,25 @@ export default class MainContainer extends Container {
 			});
 		}
 		
-		this._puzzles.forEach(puzzle => {
+		this._puzzles.forEach((puzzle, puzzleIndex) => {		//FIXME замена пустой сетки
 			if (puzzle.toDelete == true) {
-				this._puzzleContainer.removeChild(puzzle);
+				let puzzleLine;
+				let puzzleColumn;
+				do{
+				//this._puzzleContainer.removeChild(puzzle);
+				let puzzlesRandomizer = Math.floor(Math.random()*4);
+				
+				puzzle.removeChild(puzzle.puzzleSprite);
+				puzzle.addChild(puzzle.puzzleSprite = PIXI.Sprite.from(this._namePuzzles[puzzlesRandomizer]));
+				puzzle.puzzleSprite.anchor.set(.5, .5);
+				puzzle.toDelete = false;
+
+				puzzleLine = puzzleIndex % this._columnsNumber;
+				puzzleColumn = Math.floor(puzzleIndex / this._columnsNumber);
+				this._puzzleNumbers[puzzleColumn][puzzleLine] = puzzlesRandomizer;
+				console.log(Math.floor(puzzleIndex / this._columnsNumber) + " " + (puzzleIndex % this._columnsNumber));
+				
+				} while (this.isStreak(puzzleColumn, puzzleLine));
 			}
 		});
 	}
